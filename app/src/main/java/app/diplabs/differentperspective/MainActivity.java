@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     private SeekBar seekbarHorizontal;
     private SeekBar seekBarVertical;
 
-    private boolean showGrid = true;
+    private boolean showGrid = false;
     private boolean showView = true;
     private double widthPercentSmaller = 0.0;
     private double heightPercentSmaller = 0.0;
@@ -76,10 +76,10 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
     private void initializeUI() {
 
-        javaCameraView = findViewById(R.id.cameraview);
+        javaCameraView = findViewById(R.id.camera_view);
 
         seekbarHorizontal = findViewById(R.id.seekBarHorizontal);
-        seekBarVertical = findViewById(R.id.seekBarVerticak);
+        seekBarVertical = findViewById(R.id.seekBarVertical);
 
         // Get the progress value of the SeekBar
         // using setOnSeekBarChangeListener() method
@@ -161,6 +161,8 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         javaCameraView.setCameraIndex(activeCamera);
         javaCameraView.setVisibility(CameraBridgeViewBase.VISIBLE);
         javaCameraView.setCvCameraViewListener(this);
+
+
         javaCameraView.enableView();
 
     }
@@ -231,12 +233,13 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         int height = mRgba.height();
 
         // Define the size of the shape (50% of the frame width and height)
-        int shapeWidth = width / 2;
-        int shapeHeight = height / 2;
+        int shapeWidth = (int) (width *0.6);
+        int shapeHeight = (int) (height *0.6);
 
         // Calculate the top-left corner of the shape so it's centered
         int startX = (width - shapeWidth) / 2;
         int startY = (height - shapeHeight) / 2;
+
 
         // Define the four points for the original shape
         Point[] points = new Point[4];
@@ -245,19 +248,27 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         points[2] = new Point(startX + shapeWidth, startY + shapeHeight);
         points[3] = new Point(startX, startY + shapeHeight);
 
-        // Define the color for the original shape
+// Define the color for the original shape
         Scalar color = new Scalar(255, 0, 0, 255); // Blue color in RGBA
 
-        // Define the four points for the morphed shape
+// Calculate the new width and height for the morphed shape
+        double newWidth = shapeWidth * (1 - widthPercentSmaller);
+        double newHeight = shapeHeight * (1 - heightPercentSmaller);
 
+// Calculate the offsets to center the morphed shape
+        double offsetX = (shapeWidth - newWidth) / 2;
+        double offsetY = (shapeHeight - newHeight) / 2;
+
+// Define the four points for the morphed shape, centered within the original shape
         Point[] pointsMorph = new Point[4];
-        pointsMorph[0] = new Point(startX + shapeWidth * widthPercentSmaller, startY);
-        pointsMorph[1] = new Point(startX + shapeWidth - (shapeWidth * widthPercentSmaller), startY);
-        pointsMorph[2] = new Point(startX + shapeWidth, startY + shapeHeight - (shapeHeight * heightPercentSmaller));
-        pointsMorph[3] = new Point(startX, startY + shapeHeight - (shapeHeight * heightPercentSmaller));
+        pointsMorph[0] = new Point(startX + offsetX, startY + offsetY);
+        pointsMorph[1] = new Point(startX + offsetX + newWidth, startY + offsetY);
+        pointsMorph[2] = new Point(points[2].x, startY + offsetY + newHeight);
+        pointsMorph[3] = new Point(points[3].x, startY + offsetY + newHeight);
 
         // Define the color for the morphed shape
         Scalar colorMorph = new Scalar(0, 255, 0, 255); // Green color in RGBA
+
 
         if (showView) {
 
@@ -327,16 +338,36 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
     }
 
-
-    public void showView(View view) {
+    public void showView(View view){
         showView = !showView;
     }
-
-
-    public void showGrid(View view) {
-        showGrid = !showGrid;
+    public void customButton(View view){
+        if (showGrid) {
+            showGrid = false;
+            seekBarVertical.setVisibility(View.INVISIBLE);
+            seekbarHorizontal.setVisibility(View.INVISIBLE);
+        }
+        else{
+            showGrid = true;
+            seekBarVertical.setVisibility(View.VISIBLE);
+            seekbarHorizontal.setVisibility(View.VISIBLE);
+        }
     }
 
+    public void set80degrees(View view){
+
+        widthPercentSmaller = 0.1;
+        heightPercentSmaller = 0.8;
+        seekbarHorizontal.setProgress((int) (widthPercentSmaller*100));
+        seekBarVertical.setProgress((int) (heightPercentSmaller*100));
+    }
+
+    public void set70degrees(View view){
+        widthPercentSmaller = 0.1;
+        heightPercentSmaller = 0.7;
+        seekbarHorizontal.setProgress((int) (widthPercentSmaller*100));
+        seekBarVertical.setProgress((int) (heightPercentSmaller*100));
+    }
 
     @Override
     protected void onResume() {
@@ -360,4 +391,6 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
 
     }
+
+
 }
